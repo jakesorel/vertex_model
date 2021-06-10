@@ -138,7 +138,7 @@ def triangulate_periodic(x,Lx,Ly):
 
 
 @jit(nopython=True)
-def get_neighbours(tri,neigh=None):
+def get_neighbours(tri,neigh=None,fast=True):
     """
     Given a triangulation, find the neighbouring triangles of each triangle.
 
@@ -161,8 +161,9 @@ def get_neighbours(tri,neigh=None):
             if neigh[j,k]==-1:
                 neighb,l = np.nonzero((tri_compare[:,:,0]==tri_i[k,0])*(tri_compare[:,:,1]==tri_i[k,1]))
                 neighb,l = neighb[0],l[0]
-                neigh[j,k] = neighb
-                neigh[neighb,np.mod(2-l,3)] = j
+                if fast is True:
+                    neigh[j,k] = neighb
+                    neigh[neighb,np.mod(2-l,3)] = j
     return neigh
 
 
@@ -265,7 +266,7 @@ def hexagonal_lattice(rows=3, cols=3, noise=0.0005, A=None):
             points.append((x, y))
     points = np.asarray(points)
     if A is not None:
-        points = points * np.sqrt(2 * np.sqrt(3) / 3)
+        points = points * np.sqrt(2 * np.sqrt(3) / 3) * np.sqrt(A)
     return points
 
 
@@ -331,6 +332,27 @@ def sort_coords(coords,centre,start=None):
     ncoords = coords-centre
     return coords[np.mod(np.arctan2(ncoords[:,1],ncoords[:,0])-start_angle,np.pi*2).argsort()]
 
+@jit(nopython=True)
+def get_vertex_mask(cell_i,tri):
+    mask = (tri == cell_i)
+    return mask[:,0] + mask[:,1] + mask[:,2]
+
+@jit(nopython=True)
+def get_vertex_trids(cell_i,tri):
+    mask = (tri == cell_i)
+    return np.nonzero(mask)
+
+@jit(nopython=True)
+def n_vertices(cell_i,tri):
+    return (tri==cell_i).sum()
+
+@jit(nopython=True)
+def n_vertices_all(tri):
+    nc = tri.max()+1
+    n_verts = np.zeros(nc)
+    for i in range(tri.max()+1):
+        n_verts[i] = n_vertices(i,tri)
+    return n_verts
 
 
 ###Archive

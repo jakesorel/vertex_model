@@ -8,21 +8,19 @@ self.assign_parameters(Kappa = np.ones(self.nc),
                        Lambda = np.ones((self.nc,self.nc))*0.075,#0.075
                        A0 = np.ones((self.nc))*1.25)
 
-self.get_displacements()
-self.get_P()
-self.get_A()
-self.get_F()
-
 dt = 0.05
 tfin = 100
 t_span = np.arange(0,tfin,dt)
 nt = t_span.size
 
 
-
 v_save = np.zeros((nt,self.tri.shape[0],2))
 tri_save = np.zeros((nt,self.tri.shape[0],3),dtype=np.int64)
 neigh_save = np.zeros((nt,self.tri.shape[0],3),dtype=np.int64)
+
+self.get_displacements()
+self.get_A()
+self.get_P()
 
 # nt = 100
 t0 = time.time()
@@ -39,7 +37,7 @@ for i in range(nt):
     tri_save[i] = self.tri
     neigh_save[i] = self.neigh
 t1=time.time()
-print((t1-t0)/nt * 10**6, "ns per step")
+print((t1-t0),"s",(t1-t0)/nt * 10**6, "ns per step")
 
 
 animate_mesh(v_save,neigh_save,self.Lx,self.Ly,n_frames=20)
